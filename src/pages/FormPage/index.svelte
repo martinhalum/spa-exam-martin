@@ -12,7 +12,6 @@
 
     const getType = () =>{
         const url = window.location.href;
-        console.log(url);
 
         if(url.includes("add")){
             return "add"

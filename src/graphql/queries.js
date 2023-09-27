@@ -157,14 +157,10 @@ export const DELETE_EMPLOYEE = gql`
       marital_status
       position
       date_hired
-      contact_info {
-        primary
-        others
-      }
-      address {
-        primary
-        others
-      }
+      primary_number
+      other_number
+      primary_address
+      other_address
     }
   }
 `;
