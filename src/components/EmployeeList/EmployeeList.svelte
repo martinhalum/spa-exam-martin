@@ -1,121 +1,99 @@
 <!-- src/EmployeeList.svelte -->
 <script>
   import "./styles/index.css";
-  import { getContext } from 'svelte';
-  import { query, mutation } from 'svelte-apollo';
+  import { push } from "svelte-spa-router";
+  import { mutation } from 'svelte-apollo';
 
-  import AddModal from "../AddModal/AddModal.svelte";
-  import EditModal from "../EditModal/EditModal.svelte";
-  import { DELETE_EMPLOYEE, GET_EMPLOYEES, GET_EMPLOYEES_TOTAL } from '../../graphql/queries';
+  import {computeDate} from "../../scripts/AppHandler";
+  import { DELETE_EMPLOYEE } from '../../graphql/queries';
   
-  const { open } = getContext('simple-modal');
-  
-  let limit = 5;
-  let offset = 0;
+  export let employees = {};
+  export let total = 1;
+  export let limit = 0;
+  export let offset = 0;
+  export let refreshData = () => {};
 
-  const employees = query(GET_EMPLOYEES, {
-    variables: {limit, offset},
-  });
-  const total = query(GET_EMPLOYEES_TOTAL);
-  
   const deleteEmployee = mutation(DELETE_EMPLOYEE);
-
-
-  const handleAdd = () => {
-    open(AddModal);
-  }
-
-  const handleEdit = (employee) => {
-    open(EditModal, {
-      selectedEmployee: employee, 
-      employees: employees,
-      pages: total,
-    });
-  }
-
+  
   const handleDelete = async (id) => {
-    try{
-      await deleteEmployee({variables: {id}})
-      employees.refetch();
-      total.refetch();
-    }catch(error){
-      console.error("GraphQL Deletion: Error: ", error)
+    try {
+      await deleteEmployee({ variables: { id } });
+      refreshData(limit, offset);
+    } catch (error) {
+        console.error("GraphQL Deletion Error:", error);
     }
   }
 
   const jumpToFirst = () =>{
     offset = 0;
-    employees.refetch({limit, offset});
+    refreshData(limit, offset);
   }
 
   const nextPage = () => {
     offset = Math.max(offset + limit);
-    employees.refetch({limit, offset});
+    refreshData(limit, offset);
   }
 
   const prevPage = () => {
     offset = Math.max(offset - limit, 0);
-    console.log(offset)
-    employees.refetch({limit, offset})
+    refreshData(limit, offset);
   }
 
   const jumpToLast = (lastItem) => {
     offset = Math.floor(lastItem/limit) * limit;
-    employees.refetch({limit, offset});
+    refreshData(limit, offset);
   }
 </script>
 
-<main>
-  <body class="container">
-    <button on:click={handleAdd}>Add Employee</button>
-    {#if $employees.loading}
-      <p>Loading...</p>
-    {:else if $employees.error}
-      <p>Error: {$employees.error.message}</p>
-    {:else}
-      <table>
-        <thead>
+<body class="list-container">
+  {#if employees.loading}
+    <p>Loading...</p>
+  {:else if employees.error}
+    <p>Error: {employees.error.message}</p>
+  {:else}
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Primary Address</th>
+          <th>Primary Contact Info</th>
+          <th>Age</th>
+          <th>Years in Company</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each employees.data.employees as employee (employee.id)}
           <tr>
-            <th>Name</th>
-            <th>Primary Address</th>
-            <th>Primary Contact Info</th>
-            <th>Age</th>
-            <th>Years in Company</th>
-            <th>Actions</th>
+            <td>{employee.first_name} {employee.last_name}</td>
+            <td>{employee.primary_address}</td>
+            <td>{employee.primary_number}</td>
+            <td>{computeDate(employee.birthday)}</td>
+            <td>{computeDate(employee.date_hired)}</td>
+            <td>
+              <button on:click={()=>push(`/view/${employee.id}`)}>View</button>
+              <button on:click={()=>push(`/edit/${employee.id}`)}>Edit</button>
+              <button on:click={()=>handleDelete(employee.id)}>Delete</button>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          {#each $employees.data.employees as employee (employee.id)}
-            <tr>
-              <td>{employee.name}</td>
-              <td>{employee.primaryAddress}</td>
-              <td>{employee.primaryContactInfo}</td>
-              <td>{employee.age}</td>
-              <td>{employee.yearsInCompany}</td>
-              <td>
-                <button on:click={()=>handleEdit(employee)}>Edit</button>
-                <button on:click={()=>handleDelete(employee.id)}>Delete</button>
-              </td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-      {#if $total.loading !== true}
-      <div class="table-footer">
-        <p>
-          Page:
-          {Math.ceil((offset+1)/limit)} of {Math.ceil($total.data.employeeTotal.total/limit)}
-        </p>
-        {#if $total.data.employeeTotal.total > 5}
-        <div class="button-group">
-          <button on:click={jumpToFirst} disabled={offset === 0}>First</button>
-          <button on:click={prevPage}  disabled={offset === 0}>Back</button>
-          <button on:click={nextPage} disabled={Math.ceil((offset+1)/limit) === Math.ceil($total.data.employeeTotal.total/limit)}>Next</button>
-          <button on:click={()=> jumpToLast($total.data.employeeTotal.total)} disabled={Math.ceil((offset+1)/limit) === Math.ceil($total.data.employeeTotal.total/limit)}>Last</button>
-        </div>
-        {/if}
+        {/each}
+      </tbody>
+    </table>
+    {#if $total.loading !== true}
+    <div class="table-footer">
+      <p>
+        Page:
+        {Math.ceil((offset+1)/limit)} of {Math.ceil($total.data.employeeTotal.total/limit)}
+      </p>
+      {#if $total.data.employeeTotal.total > 5}
+      <div class="button-group">
+        <button on:click={jumpToFirst} disabled={offset === 0}>First</button>
+        <button on:click={prevPage}  disabled={offset === 0}>Back</button>
+        <button on:click={nextPage} disabled={Math.ceil((offset+1)/limit) === Math.ceil($total.data.employeeTotal.total/limit)}>Next</button>
+        <button on:click={()=> jumpToLast($total.data.employeeTotal.total)} disabled={Math.ceil((offset+1)/limit) === Math.ceil($total.data.employeeTotal.total/limit)}>Last</button>
       </div>
       {/if}
+    </div>
     {/if}
-  </body>
-</main>
+  {/if}
+</body>

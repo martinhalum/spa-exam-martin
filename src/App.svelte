@@ -1,15 +1,14 @@
 <script>
-	import Modal from 'svelte-simple-modal';
-  	import EmployeeList from "./components/EmployeeList/EmployeeList.svelte";
 	import './styles/index.css';
+	import Router from 'svelte-spa-router';
 	import { setClient } from "svelte-apollo";
+	import {routes} from './routes';
 
 	export let client;
 
 	setClient(client);
 </script>
 
-<main>
-	<h2>Employee Management System</h2>
-	<Modal><EmployeeList /></Modal>
-</main>
+<body>
+	<Router {routes}/>
+</body>
