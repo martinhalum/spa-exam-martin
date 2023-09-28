@@ -1,5 +1,5 @@
 // src/graphql/queries.js
-import { gql } from "@apollo/client";
+import { gql } from "@apollo/client/core";
 
 export const GET_EMPLOYEES = gql`
   query GetEmployeesPaginated($limit: Int!, $offset: Int!) {

@@ -5,8 +5,13 @@
   import { pop, replace } from "svelte-spa-router";
   import { ADD_EMPLOYEE, DELETE_EMPLOYEE, EDIT_EMPLOYEE } from "../../graphql/queries";
 
-  export let selectedEmployee = {};
+  import {DEFAULT_DATA} from './config';
+
+  export let selectedEmployee = DEFAULT_DATA;
   export let type = "edit";
+  export let addEmployee = () => {};
+  export let updateEmployee = () => {};
+  export let deleteEmployee = () => {};
 
   let employeeDetail = {...selectedEmployee.data.employee};
   let addresses  = [];
@@ -16,11 +21,6 @@
   const isView = type === "view";
   const otherAddress = [];
   const otherNumber = [];
-
-
-  const addEmployee = mutation(ADD_EMPLOYEE);
-  const updateEmployee = mutation(EDIT_EMPLOYEE);
-  const deleteEmployee = mutation(DELETE_EMPLOYEE);
 
   if(type !== 'add'){
     addresses.push({value: employeeDetail.primary_address, isPrimary: true});
@@ -184,11 +184,13 @@
     }
   }
 </script>
+
+
 <div class="container">
   <div class="header">
     <button on:click={()=>pop()}>Back</button>
     {#if !isView}
-    <button type="button" id="save_button" on:click={handleOnSave}>Save</button>
+    <button type="button" data-testid="save_button" id="save_button" on:click={handleOnSave}>Save</button>
     <button type="button" id="delete_button" on:click={()=>deleteSelected(employeeDetail.id)}>Delete</button>
     {/if}
   </div>
@@ -198,6 +200,7 @@
         <label for="first_name" class="label">First Name:</label>
         <input 
           type="text" 
+          data-testid="first_name"
           id="first_name"
           class="input"
           disabled={isView}

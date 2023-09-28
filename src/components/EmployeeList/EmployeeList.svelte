@@ -2,18 +2,17 @@
 <script>
   import "./styles/index.css";
   import { push } from "svelte-spa-router";
-  import { mutation } from 'svelte-apollo';
 
+  import {DEFAULT_DATA, DEFAULT_TOTAL} from './config';
   import {computeDate} from "../../scripts/AppHandler";
-  import { DELETE_EMPLOYEE } from '../../graphql/queries';
-  
-  export let employees = {};
-  export let total = 1;
+
+  export let employees = DEFAULT_DATA;
+  export let total = DEFAULT_TOTAL;
   export let limit = 0;
   export let offset = 0;
   export let refreshData = () => {};
+  export let deleteEmployee = () => {};
 
-  const deleteEmployee = mutation(DELETE_EMPLOYEE);
   
   const handleDelete = async (id) => {
     try {
@@ -79,18 +78,18 @@
         {/each}
       </tbody>
     </table>
-    {#if $total.loading !== true}
+    {#if total.loading !== true}
     <div class="table-footer">
       <p>
         Page:
-        {Math.ceil((offset+1)/limit)} of {Math.ceil($total.data.employeeTotal.total/limit)}
+        {Math.ceil((offset+1)/limit)} of {Math.ceil(total.data.employeeTotal.total/limit)}
       </p>
-      {#if $total.data.employeeTotal.total > 5}
+      {#if total.data.employeeTotal.total > 5}
       <div class="button-group">
         <button on:click={jumpToFirst} disabled={offset === 0}>First</button>
         <button on:click={prevPage}  disabled={offset === 0}>Back</button>
-        <button on:click={nextPage} disabled={Math.ceil((offset+1)/limit) === Math.ceil($total.data.employeeTotal.total/limit)}>Next</button>
-        <button on:click={()=> jumpToLast($total.data.employeeTotal.total)} disabled={Math.ceil((offset+1)/limit) === Math.ceil($total.data.employeeTotal.total/limit)}>Last</button>
+        <button on:click={nextPage} disabled={Math.ceil((offset+1)/limit) === Math.ceil(total.data.employeeTotal.total/limit)}>Next</button>
+        <button on:click={()=> jumpToLast(total.data.employeeTotal.total)} disabled={Math.ceil((offset+1)/limit) === Math.ceil(total.data.employeeTotal.total/limit)}>Last</button>
       </div>
       {/if}
     </div>

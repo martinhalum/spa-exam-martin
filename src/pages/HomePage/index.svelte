@@ -4,12 +4,13 @@
   import { onMount } from "svelte";
   import EmployeeList from "../../components/EmployeeList/EmployeeList.svelte";
 
-  import { useGetEmployees, useGetTotal } from '../../scripts/EmployeeHandler.js';
+  import { useGetEmployees, useGetTotal, useDeleteEmployee } from '../../scripts/EmployeeHandler.js';
   
   let limit = 5;
   let offset = 0;
   
   const data = useGetEmployees(limit, offset);
+  const deleteEmployee = useDeleteEmployee();
   const total = useGetTotal();
 
   const refreshData = (limit, offset) =>{
@@ -39,7 +40,8 @@
                 offset={offset}
                 employees={$data} 
                 refreshData={refreshData} 
-                total={total}
+                total={$total}
+                deleteEmployee={deleteEmployee}
             />
         {/if}
     </body>
